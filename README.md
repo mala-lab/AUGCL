@@ -14,7 +14,7 @@ Taking the dataset MUTAG as an example, run the following command to obtain the 
 
 ## Citation
 ```bibtex
-@inproceedings{niu2023augcl,
+@inproceedings{niu2024augcl,
   title={Affinity Uncertainty-based Hard Negative Mining in Graph Contrastive Learning},
   author={Niu, Chaoxi and Pang, Guansong and Chen, Ling},
   year={2024},
