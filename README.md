@@ -9,7 +9,7 @@ Hard negative mining has shown effective in enhancing self-supervised contrastiv
 ## Training & Evaluation
 Taking the dataset MUTAG as an example, run the following command to obtain the experimental results:
     
-    python main.py --DS $dataset --lr 0.01 --num-gc-layers 3 --aug random2
+    python main.py --DS MUTAG --lr 0.01 --num-gc-layers 3 --aug random2
 
 
 ## Citation
