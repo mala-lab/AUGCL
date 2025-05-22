@@ -23,7 +23,7 @@ class simclr(nn.Module):
         super(simclr, self).__init__()
 
         self.embedding_dim = hidden_dim * num_gc_layers
-        self.encoder = Encoder(dataset_num_features, hidden_dim, num_gc_layers)
+        self.encoder = Encoder(dataset_num_features, hidden_dim, num_gc_layers, device)
         self.proj_head = nn.Sequential(nn.Linear(self.embedding_dim, self.embedding_dim), nn.ReLU(inplace=True), nn.Linear(self.embedding_dim, self.embedding_dim))
         self.init_emb()
 
@@ -86,7 +86,7 @@ def CalculateUncertainty(model, optimizer_un, x, x_aug, batchsize, reward, train
     x = x.unsqueeze(1).repeat(1,num_sample,1)
     x_aug = x_aug.unsqueeze(0).repeat(num_sample,1,1)
     traindata = torch.cat([x, x_aug], dim=2)
-    traindata = traindata.reshape(-1, dims)
+    traindata = traindata.reshape(-1, dims*2)
     if train:
         trainlabels = trainlabels.reshape(-1,1)
         model.train()
@@ -134,8 +134,8 @@ def run(args,seed,epochs, log_interval):
 
     model = simclr(dataset_num_features, args.hidden_dim, args.num_gc_layers).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    uncermodel = uncermodel(args.hidden_dim*args.num_gc_layers, 128, 3).to(device)
-    optimizer_un = torch.optim.Adam(uncermodel.parameters(), lr=0.01)
+    uncer_model = uncermodel(args.hidden_dim*args.num_gc_layers, 128, 3).to(device)
+    optimizer_un = torch.optim.Adam(uncer_model.parameters(), lr=0.01)
     
     print('================')
     print('lr: {}'.format(lr))
@@ -170,7 +170,7 @@ def run(args,seed,epochs, log_interval):
             data_aug = data_aug.to(device)
             x = model(data, data.x, data.edge_index, data.batch, data.num_graphs)
             x_aug = model(data_aug, data_aug.x, data_aug.edge_index, data_aug.batch, data_aug.num_graphs)
-            CalculateUncertainty(uncermodel, optimizer_un, x, x_aug, batchsize=2048, reward=args.reward, train=True, device=device)
+            CalculateUncertainty(uncer_model, optimizer_un, x, x_aug, batchsize=2048, reward=args.reward, train=True, device=device)
 
     # further train the network with uncertainty
     for epoch in range(1, epochs+1):
@@ -183,7 +183,7 @@ def run(args,seed,epochs, log_interval):
             data_aug = data_aug.to(device)
             x = model(data, data.x, data.edge_index, data.batch, data.num_graphs)
             x_aug = model(data_aug, data_aug.x, data_aug.edge_index, data_aug.batch, data_aug.num_graphs)
-            unceroutputs, _ = CalculateUncertainty(uncermodel, optimizer_un, x, x_aug, batchsize=2048, reward=args.reward, train=False, device=device)
+            unceroutputs, _ = CalculateUncertainty(uncer_model, optimizer_un, x, x_aug, batchsize=2048, reward=args.reward, train=False, device=device)
             unceroutputs = unceroutputs.reshape(x.shape[0],x.shape[0])
             loss = model.weightedloss(x, x_aug, unceroutputs)
             loss_all += loss.item() * data.num_graphs
