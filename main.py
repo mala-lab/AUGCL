@@ -134,7 +134,7 @@ def run(args,seed,epochs, log_interval):
 
     model = simclr(dataset_num_features, args.hidden_dim, args.num_gc_layers).to(device)
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
-    uncer_model = uncermodel(args.hidden_dim*args.num_gc_layers, 128, 3).to(device)
+    uncer_model = uncermodel(args.hidden_dim*args.num_gc_layers*2, 128, 3).to(device)
     optimizer_un = torch.optim.Adam(uncer_model.parameters(), lr=0.01)
     
     print('================')
